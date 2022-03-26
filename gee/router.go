@@ -5,12 +5,19 @@ import (
 )
 
 type router struct {
+	//储存处理器
 	handlers map[string]HandlerFunc
+	//储存每种请求方式的Trie树根节点
+	roots map[string]*node
 }
 
 func newRouter() *router {
-	return &router{handlers: make(map[string]HandlerFunc)}
+	return &router{handlers: make(map[string]HandlerFunc),
+		roots: make(map[string]*node)}
 }
+
+
+
 
 func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	key := method + "-" + pattern
