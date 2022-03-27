@@ -1,6 +1,9 @@
 package gee
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 /* 为了实现动态路由,需采用前缀树的形式
  */
@@ -11,6 +14,10 @@ type node struct {
 	children []*node //子节点
 	isWild   bool    //是否精确匹配，part 含有 : 或 * 时为true
 
+}
+
+func (n *node) String() string {
+	return fmt.Sprintf("node{pattern=%s, part=%s, isWild=%t}", n.pattern, n.part, n.isWild)
 }
 
 //第一个匹配成功的节点,用于查找
@@ -42,7 +49,7 @@ func (n *node) matchChildren(part string) []*node {
 //插入和查找逻辑,对应开发中的注册处理器和调用处理器
 func (n *node) insert(partten string, parts []string, height int) {
 
-	if len(parts) == 0 {
+	if len(parts) == height {
 		n.pattern = partten
 		return
 	}
@@ -68,7 +75,7 @@ func (n *node) search(parts []string, height int) *node {
 	children := n.matchChildren(part)
 
 	for _, child := range children {
-		result := child.search(parts, height)
+		result := child.search(parts, height+1)
 		if result != nil {
 			return result
 		}
@@ -76,4 +83,13 @@ func (n *node) search(parts []string, height int) *node {
 	}
 	return nil
 
+}
+
+func (n *node) travel(list *([]*node)) {
+	if n.pattern != "" {
+		*list = append(*list, n)
+	}
+	for _, child := range n.children {
+		child.travel(list)
+	}
 }
